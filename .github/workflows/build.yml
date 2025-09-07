@@ -1,4 +1,4 @@
-name: Build APK
+ name: Build APK
 
 on:
   push:
@@ -15,19 +15,24 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.10'
+        python-version: "3.10"
 
     - name: Install dependencies
       run: |
         sudo apt update
-        sudo apt install -y python3-pip build-essential git zip unzip openjdk-17-jdk
+        sudo apt install -y python3-pip git zip unzip openjdk-17-jdk
         pip install --upgrade pip
-        pip install buildozer cython virtualenv
+        pip install buildozer cython
 
-    - name: Build APK
+    - name: Unzip project
       run: |
-        unzip "myapp (2).zip" -d myapp
+        unzip -o "myapp (2).zip" -d myapp
         cd myapp
+        test -f buildozer.spec || buildozer init
+        sed -i 's/package.name = .*/package.name = InstaBot/' buildozer.spec
+        sed -i 's/package.domain = .*/package.domain = org.test/' buildozer.spec
+        sed -i 's/requirements = python3.*/requirements = python3,kivy/' buildozer.spec
+        sed -i 's/source.include_exts = .*/source.include_exts = py,png,jpg,kv,atlas,json/' buildozer.spec
         buildozer -v android debug
 
     - name: Upload APK
